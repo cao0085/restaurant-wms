@@ -1,0 +1,33 @@
+{
+  "name": "material-ui-vite",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "deploy": "gh-pages -d dist"
+  },
+  "homepage": "https://cao0085.github.io/restaurant-wms/",
+  "dependencies": {
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
+    "@mui/icons-material": "^6.4.2",
+    "@mui/material": "latest",
+    "@react-three/drei": "^9.121.4",
+    "@react-three/fiber": "^8.17.12",
+    "autoprefixer": "^10.4.20",
+    "firebase": "^11.2.0",
+    "postcss": "^8.5.1",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "^6.29.0",
+    "three": "^0.172.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "latest",
+    "tailwindcss": "^3.4.17",
+    "vite": "latest"
+  }
+}

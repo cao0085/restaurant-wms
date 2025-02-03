@@ -1,0 +1,28 @@
+@tailwind base; 
+@tailwind components; 
+@tailwind utilities;
+
+@layer utilities {
+    .row-center {
+      @apply flex flex-row items-center;
+    }
+    .theme-bg {
+      @apply bg-lightBg dark:bg-darkBg text-lightText dark:text-darkText  ;
+    }
+    .theme-reverse-bg {
+      @apply bg-darkBg dark:bg-gray-100 !text-darkText  dark:!text-gray-500;
+    }
+    .tableHead th, .tableHead td {
+      @apply !theme-reverse-bg !font-bold xl:!text-xl md:!text-lg max-sm:!text-base !font-mono;
+    }
+    .tableHead2 th, .tableHead2 td {
+      @apply  !font-bold xl:!text-xl md:!text-lg max-sm:!text-base;
+    }
+    .tableRowColor {
+      @apply odd:!bg-gray-50 even:!bg-gray-100;
+    }
+    .tableRowText, .tableRowText td {
+      @apply text-base max-lg:!text-base;
+    }
+
+  }
