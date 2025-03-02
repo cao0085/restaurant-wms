@@ -5,8 +5,9 @@ import { useFirebase } from "../firebase";
 
 let companyId = "example";
 
-export const MATERIALS_COLLECTION_PATH = `companiesData/${companyId}/Materials`;
+export const MATERIALS_COLLECTION_PATH = `companiesData/${companyId}/Material`;
 export const ORDERS_COLLECTION_PATH = `companiesData/${companyId}/Order`;
+export const MENU_COLLECTION_PATH = `companiesData/${companyId}/Menu`;
 export const OFFICIAL_CATEGORY_COLLECTION_PATH = `officialLibrary/Materials`;
 
 // 
@@ -90,7 +91,7 @@ export async function fetchInventoryData({firestore}) {
 export async function fetchOrderData({firestore}) {
 
     try{
-        const orderList = {};
+        const orderList = [];
         const orderRef = collection(firestore, ORDERS_COLLECTION_PATH);
         const ordersSnapshot = await getDocs(orderRef);
 
@@ -101,6 +102,25 @@ export async function fetchOrderData({firestore}) {
         console.log(orderList)
 
         return orderList
+    }catch(error){
+        console.log(error);
+    }
+}
+
+export async function fetchMenuData({firestore}) {
+
+    try{
+        
+        const menuData = {};
+        const menuRef = collection(firestore, MENU_COLLECTION_PATH);
+        const menuSnapshot = await getDocs(menuRef);
+
+        menuSnapshot.forEach((doc)=>{
+            menuData[doc.id] = doc.data();
+        })
+
+        return menuData
+
     }catch(error){
         console.log(error);
     }

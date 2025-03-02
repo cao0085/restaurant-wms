@@ -1,17 +1,13 @@
 
-
-import {Paper,List,ListItem,ListItemText,ListItemSecondaryAction,IconButton,Button,Stack} from "@mui/material";
+import React from "react";
+import {Paper,List,ListItem,ListItemText,IconButton,Button,Stack} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 
+const PendingListUI = React.memo(({ pendingList, handleDeleteMaterial, hasDuplicates }) => {
 
+    console.log('PendingListUI Rendered');
 
-
-
-export default function PendingList({pendingList,handleDeleteMaterial,hasDuplicates}) {
-
-
-    
     return(
         <Paper sx={{ p: 2,width: "100%", maxHeight: "350px", overflow: "auto" }}>
             <List>
@@ -39,4 +35,6 @@ export default function PendingList({pendingList,handleDeleteMaterial,hasDuplica
             </List>
         </Paper>
     )
-}
+})
+
+export default PendingListUI;

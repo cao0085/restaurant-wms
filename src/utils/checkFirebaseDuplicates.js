@@ -1,15 +1,14 @@
 import { query, where, getDocs } from "firebase/firestore";
 
 /**
- * 检查 Firestore 中指定字段是否有重复值
- * @param {string} field - 要检查的字段名称
- * @param {Array} values - 要查询的值数组
- * @param {CollectionReference} collectionRef - Firestore 集合引用
- * @returns {Array} - 返回重复的值数组
+ * @param {string} field - name check
+ * @param {Array} values - array check
+ * @param {CollectionReference} collectionRef - collation
+ * @returns {Array} - array
  */
+
 const checkFirebaseDuplicates = async (field, values, collectionRef) => {
     try {
-        // 将数组分块，避免 Firestore 的 10 个值限制
         const chunkArray = (array, size) => {
             const chunks = [];
             for (let i = 0; i < array.length; i += size) {

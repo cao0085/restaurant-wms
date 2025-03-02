@@ -1,9 +1,9 @@
 
 import React,{useEffect ,useState} from "react";
 import { useFirebase } from "../../../firebase";
-import { doc, deleteDoc } from "firebase/firestore";
+import  { collection, doc, getDoc, getDocs, query, orderBy, deleteDoc,where,updateDoc } from "firebase/firestore";
 import { Dialog,DialogContent, DialogTitle, DialogActions, Button,TextField, Alert,Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
-import {ORDERS_COLLECTION_PATH} from '../../../hooks/FetchFirebaseData'
+import {ORDERS_COLLECTION_PATH,MATERIALS_COLLECTION_PATH} from '../../../hooks/FetchFirebaseData'
 
 
 
@@ -89,22 +89,101 @@ function DeleteOrderDialog({ open, onClose, ID }) {
     const [error,setError] = useState("");
 
     const deleteFirebaseOrder = async () => {
-
         const docID = ID;
-
+    
         if (inputValue !== docID) {
             setError("Order ID does not match.");
             return;
         }
-
+    
         try {
-            const docRef = doc(firestore,ORDERS_COLLECTION_PATH, docID);
-            await deleteDoc(docRef);
+            // 1. get order data to update material's data
+            const orderDocRef = doc(firestore, ORDERS_COLLECTION_PATH, docID);
+            const orderSnapshot = await getDoc(orderDocRef);
+    
+            if (!orderSnapshot.exists()) {
+                setError("Order not found.");
+                return;
+            }
+            
+            console.log("dsadsadas")
+            const orderData = orderSnapshot.data();
+            const { items, type } = orderData;
+
+            await Promise.all(items.map(async (material) => {
+
+                const priceHistoryDocRef = doc(
+                    firestore,
+                    MATERIALS_COLLECTION_PATH,
+                    material.name,
+                    "PriceHistory",
+                    docID
+                );
+    
+                // 3.1 刪除 `PriceHistory` 紀錄
+                await deleteDoc(priceHistoryDocRef);
+                console.log(`PriceHistory ${docID} for ${material.name} 已刪除`);
+    
+                // 3.2 更新 `Material` 資料
+                const materialDocRef = doc(firestore, MATERIALS_COLLECTION_PATH, material.name);
+                const materialSnapshot = await getDoc(materialDocRef);
+    
+                if (!materialSnapshot.exists()) {
+                    console.error(`Material ${material.name} 不存在`);
+                    return;
+                }
+    
+                const currentData = materialSnapshot.data();
+                // const quantityChange = type === "in" ? -material.quantity : material.quantity;
+                const newStock = (currentData.currentStock || 0) + material.quantity;
+    
+                // 3.3 更新 `currentStock`，如果是 `in` 需要更新 `lastPrice` 和 `lastRestockDate`
+                const updateData = {
+                    currentStock: newStock,
+                };
+                
+                if (type === "in") {
+                    // 重新計算 `lastPrice` 和 `lastRestockDate`
+                    const priceHistoryRef = collection(firestore, MATERIALS_COLLECTION_PATH, material.name, "PriceHistory");
+                    const q = query(
+                        priceHistoryRef,
+                        where("type", "==", "in"),    // 只撈 in
+                        orderBy("date", "desc")       // 按 date 做降序
+                    );
+                    const priceHistorySnapshot = await getDocs(q);
+                    console.log("dsadasdsa")
+    
+                    if (!priceHistorySnapshot.empty) {
+
+                        const latestDoc = priceHistorySnapshot.docs[0];
+                        const latestData = latestDoc.data();
+                        
+                        updateData.lastPrice = latestData.price;
+                        updateData.lastRestockDate = latestData.date;
+                        console.log(updateData.lastRestockDate)
+                        console.log(updateData.lastRestockDate)
+
+                    } else {
+                        updateData.lastPrice = 0;
+                        updateData.lastRestockDate = null;
+                    }
+                }
+
+                console.log(materialDocRef,updateData)
+                await updateDoc(materialDocRef, updateData);
+    
+            }));
+
+            await deleteDoc(orderDocRef);
+            console.log(`Order ${docID} 已刪除`);
+    
             setError("");
             onClose();
             window.location.reload();
+    
         } catch (error) {
-            console.error(error);
+            console.error("刪除訂單時發生錯誤：", error);
+            setError("Failed to delete the order.");
         }
     };
 

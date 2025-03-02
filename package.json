@@ -17,16 +17,22 @@
     "@mui/material": "latest",
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.12",
+    "@reduxjs/toolkit": "^2.5.1",
     "autoprefixer": "^10.4.20",
+    "chart.js": "^4.4.8",
     "firebase": "^11.2.0",
     "postcss": "^8.5.1",
     "react": "latest",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "latest",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.29.0",
+    "recharts": "^2.15.1",
     "three": "^0.172.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "latest",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^3.4.17",
     "vite": "latest"
   }

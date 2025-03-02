@@ -1,14 +1,20 @@
 
-import { useFirebase }from '../../../firebase';
-import { collection, doc, setDoc } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
-
-import generateOrderId from '../../../untils/generateOrderId'
-import {fetchMaterialsData,ORDERS_COLLECTION_PATH} from '../../../hooks/FetchFirebaseData';
-
-import DeleteIcon from "@mui/icons-material/Delete"; // MUI 刪除圖示
 import { Dialog,DialogContent, DialogTitle, DialogActions, Button,TextField, Alert,Table,Select,MenuItem,Stack,Typography,
-        TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+    TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+
+
+import { useFirebase }from '../../../firebase';
+import { collection, doc, setDoc, getDoc, updateDoc} from "firebase/firestore";
+import {fetchMaterialsData,ORDERS_COLLECTION_PATH,MATERIALS_COLLECTION_PATH} from '../../../hooks/FetchFirebaseData';
+import generateOrderId from '../../../utils/generateOrderId'
+
+
+import { useSelector } from 'react-redux';
+import {testData} from '../testData';
 
 
 
@@ -51,64 +57,24 @@ const unitOptions = ["kg/g","l/ml"]
 export default function AddOrderForm({ open, onClose }) {
 
     const { firestore } = useFirebase();
+    const {materials} = useSelector((state) => state.material);
     const materialsData = useRef({});
-    const [orderType,setOrderType] = useState("in");
 
+    const [orderType,setOrderType] = useState("in");
     const [tableRows,setTableRows] = useState([]);
     const [message,setMessage] = useState("");
 
-    useEffect(()=>{
-        const fetchData = async () => {
-            try {
-                const data = await fetchMaterialsData({firestore});
-                materialsData.current= data ;
-                
-            } catch (err) {
-                console.log(err.message);
-            }
-        };
-        fetchData();
-    },[firestore])
+    useEffect(() => {
+        if(materials){
+            materialsData.current = materials
+        }
+    },[materials]);
 
 
     useEffect(()=>{
         setTableRows(Array(5).fill({ ...emptyRowByType[orderType] }))
     },[orderType])
 
-
-    const submitOrderToFirebase = async() =>{
-
-        if (hasEmptyValues(tableRows)) {
-            let error = "Some fields are empty. Please complete the form before submitting!"
-            console.error(error);
-            setMessage(error);
-            return;
-        }
-
-        try {
-            const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
-            const type = orderType;
-            const docRef = collection(firestore,ORDERS_COLLECTION_PATH);
-            // Ensure the generated order ID is unique to prevent duplicate entries in Firestore.
-            const orderId = await generateOrderId(docRef, date, type);
-
-            const newOrder = {
-                createdAt: new Date().toISOString(),
-                date: date,
-                id: orderId,
-                type: type,
-                items:tableRows,
-            };
-
-            await setDoc(doc(docRef, orderId), newOrder);
-            console.log("Successful Add :", orderId);
-            setMessage(`✅ Order ${orderId} has been successfully added!`);
-
-        } catch(error) {
-            console.error("Error:", error);
-        }
-
-    }
 
     const AddEmptyRow = () => {
         setTableRows((prev) => [...prev, { ...emptyRowByType[orderType] }]);
@@ -120,6 +86,103 @@ export default function AddOrderForm({ open, onClose }) {
             Object.values(item).some((value) => value === null || value === undefined || value === "" || value === 0)
         );
     };
+
+    // const submitOrderToFirebase = async(orderPayload) =>{
+    const submitOrderToFirebase = async() =>{
+
+        if (hasEmptyValues(tableRows)) {
+            let error = "Some fields are empty. Please complete the form before submitting!"
+            console.error(error);
+            setMessage(error);
+            return;
+        }
+
+        try {
+
+            // date function
+            const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
+
+            // action 1 =>  add to order 
+            const type = orderType;
+            const docRef = collection(firestore,ORDERS_COLLECTION_PATH);
+            const orderId = await generateOrderId(docRef, date, type);
+
+            // component state
+            const newOrder = {
+                createdAt: new Date().toISOString(),
+                date: date,
+                id: orderId,
+                type: type,
+                items:tableRows,
+            };
+
+
+            await setDoc(doc(docRef, orderId), newOrder);
+
+            // action 2 & 3  =>  to material's priceHistory
+
+            tableRows.map(async (material) => {
+
+                // action 2 
+                const priceHistoryDocRef = doc(
+                    collection(firestore, MATERIALS_COLLECTION_PATH, material.name, "PriceHistory"),
+                    orderId
+                );
+
+                const priceHistoryData = {
+                    date: date,
+                    quantity: type === "in" ? (Number(material.quantity) || 0) : -(Number(material.quantity) || 0),
+                    type: type,
+                    ... (type === "in" && { price: Number(material.price) || 0 })
+                };
+
+                await setDoc(priceHistoryDocRef, priceHistoryData);
+
+
+                // action 3 =>  update material's data
+                const materialDocRef = doc(firestore, MATERIALS_COLLECTION_PATH, material.name);
+                const materialSnapshot = await getDoc(materialDocRef);
+
+                if (!materialSnapshot.exists()) {
+                    console.error("找不到對應的 material 文件");
+                    return;
+                }
+
+                
+                const currentData = materialSnapshot.data();
+                const quantityChange = type === "in" ? Number(material.quantity) : -Number(material.quantity);
+                const newStock = (currentData.currentStock || 0) + quantityChange;
+
+                const updateData = {
+                    currentStock: newStock,
+                    ... (type === "in" && {
+                        lastRestockDate: date,
+                        lastPrice: material.price
+                    })
+                };
+            
+                await updateDoc(materialDocRef, updateData);
+                console.log(`更新成功：${material.name} 的 data`);
+
+            });
+            
+            setMessage(`✅ Order ${orderId} has been successfully added!`);
+
+        } catch(error) {
+            console.error("Error:", error);
+        }
+
+    }
+
+    // const submitTestOrders = async () => {
+    //     for (let order of testData) {
+    //       await submitOrderToFirebase(order);
+    //     }
+    // };
+      
+
+
+
 
 
 
@@ -193,66 +256,15 @@ function MaterialRow({orderType,tableRows,setTableRows,materialsData}) {
         setTableRows((prev) => prev.filter((_, i) => i !== index));
     };
     
-    // const handleChange = (index, field) => (event) => {
-    //     const value = event.target.value;
-    
-    //     setTableRows((prev) =>
-    //         prev.map((row, i) => {
-    //             if (i !== index) return row;
-                
-    
-    //             if (field === "name") {
-    //                 console.log(materialsData)
-    //                 console.log(value)
-    //                 const selectedMaterial = Object.values(materialsData).find(
-    //                     (material) => material.name === value
-    //                 );
-
-    //                 console.log("selected",selectedMaterial.uniqueID)
-    
-    //                 return {
-    //                     ...row,
-    //                     name: value,
-    //                     ID: selectedMaterial ? selectedMaterial.uniqueID : "",
-    //                 };
-    //             }
-
-
-    //             if (field === "ID") {
-    //                 console.log("Materials Data:", materialsData);
-    //                 console.log("Selected ID:", value);
-    
-    //                 const selectedMaterial = Object.values(materialsData).find(
-    //                     (material) => material.uniqueID === value
-    //                 );
-    
-    //                 return {
-    //                     ...row,
-    //                     ID: value,
-    //                     name: selectedMaterial ? selectedMaterial.name : "",
-    //                 };
-    //             }
-
-
-    //             if (field === "quantity" || field === "price") {
-    //                 updatedRow.total = updatedRow.quantity * updatedRow.price || 0;
-    //             }
-    
-    //             return { ...row, [field]: value };
-    //         })
-    //     );
-    // };
-
     const handleChange = (index, field) => (event) => {
         const value = event.target.value;
     
         setTableRows((prev) =>
             prev.map((row, i) => {
-                if (i !== index) return row; // 只更新對應 index 的 row
+                if (i !== index) return row;
     
                 let updatedRow = { ...row, [field]: value };
     
-                // ✅ 如果 name 變更，自動更新 ID
                 if (field === "name") {
                     console.log(materialsData);
                     console.log("Selected Name:", value);
@@ -268,7 +280,6 @@ function MaterialRow({orderType,tableRows,setTableRows,materialsData}) {
                     };
                 }
     
-                // ✅ 如果 ID 變更，自動更新 name
                 if (field === "ID") {
                     console.log("Materials Data:", materialsData);
                     console.log("Selected ID:", value);
@@ -283,9 +294,10 @@ function MaterialRow({orderType,tableRows,setTableRows,materialsData}) {
                     };
                 }
     
-                // ✅ 如果 `quantity` 或 `price` 變更，自動更新 `total`
-                if (field === "quantity" || field === "price") {
-                    updatedRow.total = (parseFloat(updatedRow.quantity) || 0) * (parseFloat(updatedRow.price) || 0);
+                if(orderType === "in"){
+                    if (field === "quantity" || field === "price") {
+                        updatedRow.total = (parseFloat(updatedRow.quantity) || 0) * (parseFloat(updatedRow.price) || 0);
+                    }
                 }
     
                 return updatedRow;

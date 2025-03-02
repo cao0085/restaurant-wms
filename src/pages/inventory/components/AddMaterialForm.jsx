@@ -1,28 +1,27 @@
 
 import React, { useEffect, useCallback, useRef, useState } from "react";
-import {fetchCategoryData,MATERIALS_COLLECTION_PATH} from '../../../hooks/FetchFirebaseData'
-import { useFirebase } from "../../../firebase";
-import { doc, setDoc, getDoc, collection, query, where, getDocs ,writeBatch} from "firebase/firestore";
-import findDuplicateValues from '../../../untils/findDuplicateValues'
-import checkFirebaseDuplicates from '../../../untils/checkFirebaseDuplicates'
-
-import AddMaterial from './AddMaterials'
-import PendingList from './PendingList'
-
-import { Stepper, Step, StepLabel, Box } from "@mui/material";
-
-import {Paper,Select,Stack,Alert,Typography,
+import {Stack,Typography, Stepper,Step, StepLabel, Box ,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
     Button,
-    TextField,
-    MenuItem,
-    FormControl,
-    InputLabel,
-  } from "@mui/material";
+} from "@mui/material";
 
+// utils
+import findDuplicateValues from '../../../utils/findDuplicateValues'
+import checkFirebaseDuplicates from '../../../utils/checkFirebaseDuplicates'
+
+// firebase
+import { doc, setDoc, getDoc, collection, query, where, getDocs ,writeBatch} from "firebase/firestore";
+import { useFirebase } from "../../../firebase";
+import { fetchCategoryData, MATERIALS_COLLECTION_PATH } from '../../../hooks/FetchFirebaseData'
+
+// component
+import AddMaterial from './AddMaterials'
+import PendingListUI from './PendingListUI'
+
+import {testData} from '../testData'
 
 
 
@@ -35,91 +34,19 @@ const defaultMaterial ={
     description : "",
 }
 
-const pendingList2 = [
-    {
-        uniqueID: "A04",
-        mainCategory: "Meat",
-        subCategory: "Beef",
-        name: "Sirloin Steak",
-        unit: "kg",
-        description: "High-quality sirloin steak.",
-    },
-    {
-        uniqueID: "B12",
-        mainCategory: "Vegetable & Fruits",
-        subCategory: "Leafy Greens",
-        name: "Spinach",
-        unit: "bunch",
-        description: "Fresh organic spinach.",
-    },
-    {
-        uniqueID: "C07",
-        mainCategory: "Dairy",
-        subCategory: "Milk",
-        name: "Whole Milk",
-        unit: "liter",
-        description: "Full-fat fresh milk.",
-    },
-    {
-        uniqueID: "D23",
-        mainCategory: "Grains & Cereals",
-        subCategory: "Rice",
-        name: "Basmati Rice",
-        unit: "kg",
-        description: "Aromatic long-grain rice.",
-    },
-    {
-        uniqueID: "E15",
-        mainCategory: "Seasonings",
-        subCategory: "Spices",
-        name: "Black Pepper",
-        unit: "g",
-        description: "Finely ground black pepper.",
-    },
-    {
-        uniqueID: "E15",
-        mainCategory: "Seasonings",
-        subCategory: "Spices",
-        name: "Black Pepper",
-        unit: "g",
-        description: "Finely ground black pepper.",
-    },
-    {
-        uniqueID: "E15",
-        mainCategory: "Seasonings",
-        subCategory: "Spices",
-        name: "Black Pepper",
-        unit: "g",
-        description: "Finely ground black pepper.",
-    },
-    {
-        uniqueID: "E15",
-        mainCategory: "Seasonings",
-        subCategory: "Spices",
-        name: "Black Pepper",
-        unit: "g",
-        description: "Finely ground black pepper.",
-    },
-    {
-        uniqueID: "E15",
-        mainCategory: "Seasonings",
-        subCategory: "Spices",
-        name: "Black Pepper",
-        unit: "g",
-        description: "Finely ground black pepper.",
-    },
-];
-
-
-
+// submit pendingList to firebase storage
 
 export default function AddMaterialForm({ open, onClose}) {
 
     const {firestore} = useFirebase();
+    // init empty data
+    // const [pendingList,setPendingList] = useState(testData);
+    const [pendingList,setPendingList] = useState([]);
+
     const [categoryData, setCategoryData] = useState({});
-    const [error,setError] = useState("");
-    const [pendingList,setPendingList] = useState(pendingList2);
+    
     const [step,setStep] = useState(0);
+    const [error,setError] = useState("");
 
     useEffect(()=>{
         const fetchData = async () => {
@@ -146,18 +73,18 @@ export default function AddMaterialForm({ open, onClose}) {
     },[pendingList])
 
 
-    // For Child Element
-    const handleDeleteMaterial = (index) =>{
+    // For pendindlist UI Child Element
+    const handleDeleteMaterial = useCallback((index) => {
         setPendingList((prevList) => prevList.filter((_, i) => i !== index));
-    };
+    }, []);
 
 
-    // For Child Element
+    // For pendindlist UI Child Element
     const hasDuplicates = useCallback(async() =>{
 
         let error="ERROR：";
 
-        // pendingList check
+        // pendingList check Duplicate
         const checkID = findDuplicateValues(pendingList, "uniqueID");
         const checkName = findDuplicateValues(pendingList, "name");
         if (checkID.length > 0 || checkName.length > 0) {
@@ -196,9 +123,11 @@ export default function AddMaterialForm({ open, onClose}) {
             }
             console.log("All items are unique and ready to proceed.");
             setStep(2);
+
         }catch(error) {
             console.error("Error checking database:", error);
         }
+
     },[firestore,pendingList])
 
     
@@ -224,14 +153,26 @@ export default function AddMaterialForm({ open, onClose}) {
 
     return (
         <Dialog open={open} fullWidth maxWidth="lg">
+            {/* row 1 Title */}
             <DialogTitle sx={{ textAlign: "center"}} className="theme-reverse-bg">ADD MATERIALS</DialogTitle>
+
+            {/* row 2 StepProgress component  */}
             <StepProgress activeStep={step} error={error}></StepProgress>
+
+            {/* row 3 mainblock  */}
             <DialogContent className="!px-10 max-md:!px-0">
                 <Stack className="flex !w-full !flex-row max-md:!flex-col !gap-3 ">
+
+                    {/* components & add data to materials*/}
                     <AddMaterial categoryData={categoryData} setPendingList={setPendingList}></AddMaterial>
-                    <PendingList pendingList={pendingList} handleDeleteMaterial={handleDeleteMaterial} hasDuplicates={hasDuplicates}/>
+
+                    {/* pendingList UI & delete function  */}
+                    <PendingListUI pendingList={pendingList} handleDeleteMaterial={handleDeleteMaterial} hasDuplicates={hasDuplicates}/>
+
                 </Stack>
             </DialogContent>
+
+            {/* row 4 button */}
             <Stack>
                 <DialogActions>
                     <Button onClick={onClose} color="text.secondary">
@@ -242,6 +183,7 @@ export default function AddMaterialForm({ open, onClose}) {
                     </Button>
                 </DialogActions>
             </Stack>
+
         </Dialog>
     )
 

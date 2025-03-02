@@ -2,20 +2,17 @@
 
 import React, { useState,useReducer } from "react";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
-import {useAuth} from '../hooks/FirebaseAuthContext'
+import { IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from "@mui/material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import MenuIcon from "@mui/icons-material/Menu";
+
+import { useSelector, useDispatch } from 'react-redux';
+
 import {useTheme} from '../hooks/ThemeContext'
-import {useLogin} from '../hooks/useLogin'
+import {useLoginAndLogout} from '../hooks/useLoginAndLogout'
 
 
 import FormComponent from './LoginForm/FormComponent'
-
-
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-
-
-
 
 
 
@@ -54,6 +51,7 @@ export default function NavBar() {
                     <PhoneNav anchorEl={anchorEl} open={open} handleClose={handleClose} />
                 </div>
             </div>
+            {/*user Infor and options*/}
             <UserInfor />
         </div>
     );
@@ -98,10 +96,18 @@ function PhoneNav({ anchorEl, open, handleClose }) {
                     minWidth: "125px",
                 },
         }}>
-            <MenuItem onClick={handleClose}>Materials</MenuItem>
-            <MenuItem onClick={handleClose}>Order</MenuItem>
-            <MenuItem onClick={handleClose}>Inventory</MenuItem>
-            <MenuItem onClick={handleClose}>Menu</MenuItem>
+            <Link to="/inventory">
+                <MenuItem onClick={handleClose}>Inventory</MenuItem>
+            </Link>
+            <Link to="/order">
+                <MenuItem onClick={handleClose}>Order</MenuItem>
+            </Link>
+            <Link to="/menu">
+                <MenuItem onClick={handleClose}>Menu</MenuItem>
+            </Link>
+            <Link to="/price">
+                <MenuItem onClick={handleClose}>Price</MenuItem>
+            </Link>
         </Menu>
     );
 }
@@ -110,8 +116,9 @@ function PhoneNav({ anchorEl, open, handleClose }) {
 
 function UserInfor() {
 
-    const { currentUser } = useAuth();
-    const { logout } = useLogin();
+    // redux
+    const { currentUser } = useSelector((state) => state.auth);
+    const { logout } = useLoginAndLogout();
 
     // anchorEl is MaterialUI common Method 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -133,13 +140,9 @@ function UserInfor() {
         handleMenuClose();
     };
 
-    // alert 
-    
-    const [windowState, setWindowState] = useState({
-        isOpen: false,
-        selected: "",
-    });
 
+
+    // handle which content open
     const handleWindowOpen = (event) => {
         const newSelected = event.currentTarget.getAttribute("value");
         setWindowState({
@@ -156,6 +159,12 @@ function UserInfor() {
         });
     };
 
+    // alert 
+    const [windowState, setWindowState] = useState({
+        isOpen: false,
+        selected: "",
+    });
+
 
     // logout function from useLogin();
     const handleLogout = async () => {
@@ -168,6 +177,8 @@ function UserInfor() {
 
     return (
         <div className="row-center space-x-2">
+
+            {/* basic userInfor */}
             <div className="hidden xl:flex flex-row space-x-6">
                 {currentUser ? (
                     <>
@@ -179,11 +190,14 @@ function UserInfor() {
                     <div>Visitor</div>
                 )}
             </div>
+            
 
+            {/* options */}
             <IconButton onClick={handleMenuOpen} size="large">
                 <AccountCircleIcon sx={{ fontSize: 45, color: "gray" }} />
             </IconButton>
-
+            
+            {/* when open */}
             <Menu 
                 anchorEl={anchorEl} 
                 open={open} 
@@ -198,15 +212,23 @@ function UserInfor() {
                     },
             }}>
                 <MenuItem onClick={toggleTheme}>
-                    {theme === "dark" ? "☀️ 切換為淺色模式" : "🌙 切換為深色模式"}
+                    {theme === "dark" ? "切換為淺色模式" : "切換為深色模式"}
                 </MenuItem>
 
-                <MenuItem onClick={handleWindowOpen} value={"login"}>Login</MenuItem>
-                <MenuItem onClick={handleWindowOpen} value={"companyRegister"}>Company Register</MenuItem>
-                <MenuItem onClick={handleWindowOpen} value={"employeeRegister"}>Employee Register</MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                {currentUser ? (
+                    <>
+                        <MenuItem onClick={handleWindowOpen} value={"employeeRegister"}>Employee Register</MenuItem>
+                        <MenuItem onClick={handleLogout}>Logout</MenuItem>  
+                    </>
+                ) : (
+                    <>
+                        <MenuItem onClick={handleWindowOpen} value={"companyRegister"}>Company Register</MenuItem>
+                        <MenuItem onClick={handleWindowOpen} value={"login"}>Login</MenuItem>
+                    </>
+                )}
             </Menu>
-            {/* 登入對話框 (Dialog) */}
+
+            {/* alert window block */}
             <Dialog open={windowState.isOpen} onClose={handleWindowClose} maxWidth="xs" fullWidth>
                 <FormComponent selected={windowState.selected}/>
             </Dialog>

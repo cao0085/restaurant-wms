@@ -1,11 +1,13 @@
 // Import the functions you need from the SDKs you need
 // Import React
 import React from "react";
+import { createSlice } from '@reduxjs/toolkit';
 
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore"; // Import Firestore SDK
 import { getAuth } from "firebase/auth"; // Import Auth SDK
+
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -27,6 +29,28 @@ const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const auth = getAuth(app);
 
+// create redux slice
+// 用 createSlice 製造一個物件，這個物件含有 reducer 這個 method 可以使用
+// reducer 可以
+const firebaseSlice = createSlice({
+  name: 'firebase',
+  initialState: {
+    app: app,
+    firestore: firestore,
+    auth: auth,
+  },
+  reducers: {
+  },
+});
+
+// from store.js fitch data
+// store.reducer.firebase.firestore == firebaseSlice.reducers
+export const selectFirestore = (state) => state.firebase.firestore;
+export const selectAuth = (state) => state.firebase.auth;
+
+export const firebaseReducer  = firebaseSlice.reducer;
+
+
 
 // Create global 
 const FirebaseContext = React.createContext(null);
@@ -40,3 +64,4 @@ export const FirebaseProvider = ({ children }) => (
 export const useFirebase = () => {
   return React.useContext(FirebaseContext);
 };
+

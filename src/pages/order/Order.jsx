@@ -20,17 +20,29 @@ const columns = [
 export default function Order() {
 
     const {firestore} = useFirebase();
-    const [orderList,setOrderList] = useState({});
+    const [orderData,setOrderData] = useState({});
+
+    // 
+    const [orderList,setOrderList] = useState([]);
+    
+    // order display
     const [displayData,setDisplayData] = useState({});
     const [isDataOpen, setDataOpen] = useState(false);
 
+    // addForm
     const [isFormOpen, setIsFormOpen] = useState(false);
+
+    // Page
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const displayedOrders = orderList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 //createdAt: "2025-01-15T02:07:45.521Z"
 // date: "20250115"
 // id: "20250115-in01"
 // type: "in"
 
+    // init data
     useEffect(()=>{
         const fetchData = async () => {
             try {
@@ -38,9 +50,8 @@ export default function Order() {
                 const sortedData = Object.entries(data)
                 .map(([key, value]) => ({ id: key, ...value }))
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                
-                
-                setOrderList(data);
+                setOrderData(data)
+                setOrderList(sortedData);
             } catch (err) {
                 console.log(err.message);
             }
@@ -49,13 +60,22 @@ export default function Order() {
     },[firestore])
 
 
+    // display
     const handleDisplay = (event) =>{
         const orderId = event.currentTarget.getAttribute("data-id");
-        console.log("Clicked Order ID:", orderList[orderId]);
-        setDisplayData(orderList[orderId]);
+        setDisplayData(orderData[orderId]);
         setDataOpen(true)
     }
 
+    // Pages
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
 
     return (
@@ -82,7 +102,7 @@ export default function Order() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {Object.values(orderList).map((order,index)=>(
+                        {displayedOrders.map((order,index)=>(
                             <TableRow key={index}>
                                 <TableCell data-id={order.id} onClick={handleDisplay}>{order.id}</TableCell>
                                 <TableCell>{order.date}</TableCell>
@@ -91,33 +111,16 @@ export default function Order() {
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    component="div"
+                    count={orderList.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    rowsPerPageOptions={[5, 10, 25]}
+                />
             </TableContainer>
         </div>
-    );
-}
-
-
-
-function OrderTable({ columns, data, filterComponent }) {
-
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const handleOrderClick = (row) => {
-        console.log("點擊 Order:", row);
-        alert(`你點擊了 Order: ${row.order}`);
-    };
-
-    return (
-        <div>s</div>
     );
 }

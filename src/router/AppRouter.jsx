@@ -14,7 +14,7 @@ export default function AppRouter() {
 
     return(
         <Routes>
-            <Route path="/" element={<Home />} />  {/* ✅ 添加首页 */}
+            <Route path="/" element={<Home />} /> 
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/order" element={<Order />} />
             <Route path="/menu" element={<Menu />} />

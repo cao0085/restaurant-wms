@@ -2,7 +2,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { useFirebase } from "../firebase"; 
 
-export function useLogin() {
+export function useLoginAndLogout() {
     const { auth } = useFirebase();
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");

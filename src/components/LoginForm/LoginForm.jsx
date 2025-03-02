@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {useLogin} from "../../hooks/useLogin"
+import {useLoginAndLogout} from "../../hooks/useLoginAndLogout"
 
 import {Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from "@mui/material";
 
@@ -7,7 +7,7 @@ import {Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } f
 
 export default function LoginForm({onLoginSuccess}) {
 
-    const { login, loading, message } = useLogin();
+    const { login, loading, message } = useLoginAndLogout();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
