@@ -10,6 +10,7 @@ export const fetchMaterials = createAsyncThunk(
     async (firebaseApp, { rejectWithValue }) => {
         try {
             const data = await fetchMaterialsData({ firestore: firebaseApp });
+            console.log("Redux Materials update ",data)
             return data;
         } catch (error) {
             return rejectWithValue(error.message);

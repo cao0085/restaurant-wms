@@ -4,7 +4,6 @@ import React from "react";
 import { createSlice } from '@reduxjs/toolkit';
 
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore"; // Import Firestore SDK
 import { getAuth } from "firebase/auth"; // Import Auth SDK
 

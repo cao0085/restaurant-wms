@@ -35,6 +35,7 @@ export default function Menu() {
     const {firestore} = useFirebase();
 
     const [menuData,setMenuData] = useState({});
+    const [menuRefresh, setMenuRefresh] = useState(0);
 
     // currentSelect -> menuItemInfor 
     const [currentSelect,setCurrentSelect] = useState("")
@@ -55,7 +56,7 @@ export default function Menu() {
           }
       }
       fetchData();
-    }, [firestore]);
+    }, [firestore,menuRefresh]);
 
     useEffect(()=>{
       console.log(menuData[currentSelect])
@@ -80,7 +81,7 @@ export default function Menu() {
         // overflow-hidden 拿來吻合圓角
         <div className="flex flex-row w-full h-[700px] space-x-1">
             <div className="w-[35%] h-full border-2 shadow-xl rounded-t-2xl overflow-hidden">
-                <MenuOptions menuData={menuData} setCurrentSelect={setCurrentSelect} ></MenuOptions>
+                <MenuOptions menuData={menuData} setCurrentSelect={setCurrentSelect} setMenuRefresh={setMenuRefresh}></MenuOptions>
             </div>
             <div className="w-[65%] flex flex-col border-2 shadow-xl rounded-t-2xl">
                 <div className="w-full text-3xl text-center theme-reverse-bg py-4 rounded-t-xl">DETAIL</div>

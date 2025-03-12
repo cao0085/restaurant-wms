@@ -17,7 +17,7 @@ const columns = [
 
 
 
-export default function DisplayOrder({ open, onClose, data, }) {
+export default function DisplayOrder({ open, onClose, data, setOrderRefresh}) {
 
     
     const { type, id, createdAt, items=[], date } = data;
@@ -75,14 +75,16 @@ export default function DisplayOrder({ open, onClose, data, }) {
             <DeleteOrderDialog 
                 open={deleteDialogOpen} 
                 onClose={handleCloseDeleteDialog}
+                dialogClose={onClose}
                 ID={id}
+                setOrderRefresh={setOrderRefresh}
             />
         </Dialog>
     )
 }
 
 
-function DeleteOrderDialog({ open, onClose, ID }) {
+function DeleteOrderDialog({ open, onClose, ID ,dialogClose,setOrderRefresh}) {
 
     const [inputValue, setInputValue] = useState("");
     const {firestore} = useFirebase();
@@ -134,8 +136,8 @@ function DeleteOrderDialog({ open, onClose, ID }) {
                 }
     
                 const currentData = materialSnapshot.data();
-                // const quantityChange = type === "in" ? -material.quantity : material.quantity;
-                const newStock = (currentData.currentStock || 0) + material.quantity;
+                const quantityChange = type === "in" ? -material.quantity : material.quantity;
+                const newStock = Number(currentData.currentStock || 0) + Number(quantityChange);
     
                 // 3.3 更新 `currentStock`，如果是 `in` 需要更新 `lastPrice` 和 `lastRestockDate`
                 const updateData = {
@@ -178,8 +180,13 @@ function DeleteOrderDialog({ open, onClose, ID }) {
             console.log(`Order ${docID} 已刪除`);
     
             setError("");
+            // 關閉視窗
             onClose();
+            dialogClose();
+            // re-render or refresh
+            // setOrderRefresh((prev)=>(prev+1))
             window.location.reload();
+            
     
         } catch (error) {
             console.error("刪除訂單時發生錯誤：", error);

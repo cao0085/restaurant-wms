@@ -2,9 +2,6 @@ import restaurant_wms from '../assets/restaurant_wms.jpg';
 
 
 
-
-
-
 export default function Home() {
 
 
@@ -35,9 +32,19 @@ export default function Home() {
 
             <br></br>
 
+
+
             <div className="flex flex-col justify-center items-center">
-                <div className='text-xl py-2'> 簡易流程圖 </div>
-                <img src={restaurant_wms} alt="流程圖片" />
+                <div className='text-xl py-2'> Demo 影片 </div>
+                <iframe
+                    width="560"
+                    height="315"
+                    src="https://www.youtube.com/embed/SLLFB8aMzD0"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                ></iframe>
+                {/* <img src={restaurant_wms} alt="流程圖片" /> */}
             </div>
 
         </div>

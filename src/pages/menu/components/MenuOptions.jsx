@@ -13,7 +13,7 @@ const sortMenu = ["Appetizer", "Soup", "Entrees", "Dessert", "Beverage"];
 
 
 
-export default function MenuOptions({menuData,setCurrentSelect}) {
+export default function MenuOptions({menuData,setCurrentSelect,setMenuRefresh}) {
     
 
     const [sortedMenuData,setSortedMenuData] = useState([]);
@@ -83,7 +83,7 @@ export default function MenuOptions({menuData,setCurrentSelect}) {
             </div>
 
             <button className="py-5 text-2xl" onClick={handleOpenForm}> ADD MENU ITEM</button>
-            <AddMenuItemForm open={open} onClose={handleCloseForm}> </AddMenuItemForm>
+            <AddMenuItemForm open={open} onClose={handleCloseForm} setMenuRefresh={setMenuRefresh}> </AddMenuItemForm>
         </div>
     );
 }

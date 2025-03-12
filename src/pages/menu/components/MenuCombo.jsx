@@ -8,19 +8,34 @@ const columns = [
   { label: "Profit", width: "15%" },
 ];
 
+const truncateToTwo = (num) => Math.floor(num * 100) / 100;
+
 
 export default function MenuCombo({ priceEstimator, removeComboItem }) {
     // 先計算每筆資料的 profit = price - cost
-    const computedData = priceEstimator.map((item) => ({
-        ...item,
-        profit: item.price - item.cost,
-    }));
+    const computedData = priceEstimator.map((item) => {
+        const price = truncateToTwo(Number(item.price));
+        const cost = truncateToTwo(Number(item.cost));
+        const profit = truncateToTwo(price - cost);
+        return {
+            ...item,
+            price,
+            cost,
+            profit,
+        };
+    });
 
     console.log(priceEstimator)
 
-    const totalPrice = computedData.reduce((sum, item) => sum + item.price, 0);
-    const totalCost = computedData.reduce((sum, item) => sum + item.cost, 0);
-    const totalProfit = computedData.reduce((sum, item) => sum + item.profit, 0);
+    const totalPrice = truncateToTwo(
+        computedData.reduce((sum, item) => sum + item.price, 0)
+    );
+    const totalCost = truncateToTwo(
+        computedData.reduce((sum, item) => sum + item.cost, 0)
+    );
+    const totalProfit = truncateToTwo(
+        computedData.reduce((sum, item) => sum + item.profit, 0)
+    );
 
     const profitPercentage = totalPrice > 0 
         ? ((totalProfit / totalPrice) * 100).toFixed(1) + '%' 

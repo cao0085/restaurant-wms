@@ -14,6 +14,8 @@ import generateOrderId from '../../../utils/generateOrderId'
 
 
 import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { fetchMaterials } from '../../../redux/materialSlice';
 import {testData} from '../testData';
 
 
@@ -54,10 +56,11 @@ const unitOptions = ["kg/g","l/ml"]
 
 
 
-export default function AddOrderForm({ open, onClose }) {
+export default function AddOrderForm({ open, onClose,setOrderRefresh }) {
 
     const { firestore } = useFirebase();
     const {materials} = useSelector((state) => state.material);
+    const dispatch = useDispatch();
     const materialsData = useRef({});
 
     const [orderType,setOrderType] = useState("in");
@@ -121,7 +124,7 @@ export default function AddOrderForm({ open, onClose }) {
 
             // action 2 & 3  =>  to material's priceHistory
 
-            tableRows.map(async (material) => {
+            const updatePromises = tableRows.map(async (material) => {
 
                 // action 2 
                 const priceHistoryDocRef = doc(
@@ -150,8 +153,8 @@ export default function AddOrderForm({ open, onClose }) {
 
                 
                 const currentData = materialSnapshot.data();
-                const quantityChange = type === "in" ? Number(material.quantity) : -Number(material.quantity);
-                const newStock = (currentData.currentStock || 0) + quantityChange;
+                const quantityChange = type === "in" ? Number(material.quantity) : - Number(material.quantity);
+                const newStock = Number(currentData.currentStock || 0) + quantityChange;
 
                 const updateData = {
                     currentStock: newStock,
@@ -166,7 +169,15 @@ export default function AddOrderForm({ open, onClose }) {
 
             });
             
+            
+            await Promise.all(updatePromises);
             setMessage(`✅ Order ${orderId} has been successfully added!`);
+
+            // Redux update
+            dispatch(fetchMaterials(firestore));
+
+            // Render Order Pages Data
+            setOrderRefresh((prev)=>(prev+1))
 
         } catch(error) {
             console.error("Error:", error);

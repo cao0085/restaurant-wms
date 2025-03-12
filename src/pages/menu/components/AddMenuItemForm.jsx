@@ -38,13 +38,13 @@ const emptyData = {
   tags: [],
 };
 
-export default function AddMenuItemForm({ open, onClose, onSubmit }) {
+export default function AddMenuItemForm({ open, onClose, onSubmit,setMenuRefresh}) {
 
     const {firestore} = useFirebase();
     const {materials} = useSelector((state) => state.material);
     const materialOptionsKeys = useMemo(() => Object.keys(materials || {}), [materials]);
 
-    console.log(testData)
+    // console.log(testData)
 
 
     const [formData, setFormData] = useState(emptyData);
@@ -75,22 +75,26 @@ export default function AddMenuItemForm({ open, onClose, onSubmit }) {
     };
 
 
-    // const submitDataToFirebase = async() =>{
+    const submitDataToFirebase = async() =>{
 
-    //     try{
-    //         const docID = formData.name;
-    //         const docRef = doc(firestore, MENU_COLLECTION_PATH, docID);
-    //         await setDoc(docRef, formData);
-    //         console.log("資料送出成功");
-    //     }catch(error){
-    //         console.error("送資料到 Firebase 時發生錯誤：", error);
-    //     }
+        try{
+            const docID = formData.name;
+            const docRef = doc(firestore, MENU_COLLECTION_PATH, docID);
+            await setDoc(docRef, formData);
+            console.log("資料送出成功");
 
-    // }
+            setMenuRefresh((prev)=>(prev+1))
+            onClose();
+            // window.location.reload();
+        }catch(error){
+            console.error("送資料到 Firebase 時發生錯誤：", error);
+        }
+
+    }
 
 
     
-    // importTestDataToFirebase 會接收一個陣列，然後逐筆呼叫 submitDataToFirebase
+    // testData importTestDataToFirebase 會接收一個陣列，然後逐筆呼叫 submitDataToFirebase
     const importTestDataToFirebase = async (testDataArray) => {
         for (const formData of testDataArray) {
             await testSubmitDataToFirebase(formData);
@@ -237,7 +241,8 @@ export default function AddMenuItemForm({ open, onClose, onSubmit }) {
                 <Button onClick={onClose} color="secondary">
                     Cancel
                 </Button>
-                <Button onClick={()=>importTestDataToFirebase(testData)} variant="contained" color="primary">
+                {/* <Button onClick={()=>importTestDataToFirebase(testData)} variant="contained" color="primary"> */}
+                <Button onClick={submitDataToFirebase} variant="contained" color="primary">
                     Submit
                 </Button>
             </DialogActions>

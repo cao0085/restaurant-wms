@@ -36,6 +36,12 @@ export default function AddMaterial({categoryData,setPendingList}) {
 
         setErrorMessage("");
         setPendingList(prev=>[...prev, singleData])
+
+        setSingleData((prev)=>({
+            ...prev,
+            uniqueID : "",
+            name : "",
+        }))
     }
 
     return(
@@ -123,7 +129,7 @@ export default function AddMaterial({categoryData,setPendingList}) {
             </Stack>
             
             <Stack>
-                <Button onClick={addToPendingList} sx={{ mt:4}} >CHECK DATA</Button> 
+                <Button onClick={addToPendingList} sx={{ mt:4}} >Add To List</Button> 
             </Stack>
         </Paper>
     )

@@ -6,8 +6,12 @@ import {
 
 import { initialState,displayReducer } from './components/displayReducer'
 import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { fetchMaterials } from '../../redux/materialSlice';
 
 import AddMaterialForm from './components/AddMaterialForm'
+
+
 
 // import {fetchInventoryData} from '../../hooks/FetchFirebaseData'
 // import { useFirebase } from "../../firebase";
@@ -72,6 +76,7 @@ const columns = [
 export default function Inventory() {
 
     // raw data from redux
+    const reduxDispatch = useDispatch();
     const {materials} = useSelector((state) => state.material);
     
     // 還沒使用、留著備用

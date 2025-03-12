@@ -24,6 +24,7 @@ export default function Order() {
 
     // 
     const [orderList,setOrderList] = useState([]);
+    const [orderRefresh, setOrderRefresh] = useState(0);
     
     // order display
     const [displayData,setDisplayData] = useState({});
@@ -57,7 +58,7 @@ export default function Order() {
             }
         };
         fetchData();
-    },[firestore])
+    },[firestore,orderRefresh])
 
 
     // display
@@ -85,8 +86,8 @@ export default function Order() {
                     ADD Order
                 </button>
             </div>
-            <AddOrderForm open={isFormOpen} onClose={() => setIsFormOpen(false)}/>
-            <DisplayOrder data={displayData} open={isDataOpen} onClose={() => setDataOpen(false)}/>
+            <AddOrderForm open={isFormOpen} onClose={() => setIsFormOpen(false)} setOrderRefresh={setOrderRefresh}/>
+            <DisplayOrder data={displayData} open={isDataOpen} onClose={() => setDataOpen(false)} setOrderRefresh={setOrderRefresh}/>
 
             <TableContainer 
                 component={Paper} 

@@ -21,6 +21,10 @@ import { fetchCategoryData, MATERIALS_COLLECTION_PATH } from '../../../hooks/Fet
 import AddMaterial from './AddMaterials'
 import PendingListUI from './PendingListUI'
 
+// redux
+import { useDispatch } from 'react-redux';
+import { fetchMaterials } from '../../../redux/materialSlice';
+
 import {testData} from '../testData'
 
 
@@ -39,6 +43,7 @@ const defaultMaterial ={
 export default function AddMaterialForm({ open, onClose}) {
 
     const {firestore} = useFirebase();
+    const dispatch = useDispatch();
     // init empty data
     // const [pendingList,setPendingList] = useState(testData);
     const [pendingList,setPendingList] = useState([]);
@@ -143,6 +148,11 @@ export default function AddMaterialForm({ open, onClose}) {
 
             await batch.commit();
             setPendingList([]);
+
+            // Redux update
+            dispatch(fetchMaterials(firestore));
+
+            // window.location.reload();
         }catch(error){
             console.error("送資料到 Firebase 時發生錯誤：", error);
         }
